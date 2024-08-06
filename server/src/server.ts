@@ -1,7 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
-// Import the routes
 import weatherRoutes from './routes/api/weatherRoutes.js';
 import htmlRoutes from './routes/htmlRoutes.js';
 

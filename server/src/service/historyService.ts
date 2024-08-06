@@ -12,12 +12,12 @@ class City {
 
 // TODO: Complete the HistoryService class
 class HistoryService {
-  private historyFilePath = path.join(__dirname, '../db/searchHistory.json');
+  private historyFilePath = path.join(__dirname, '../../db/searchHistory.json');
   // TODO: Define a read method that reads from the searchHistory.json file
   private async read(): Promise<City[]> {
     try {
       const data = await fs.promises.readFile(this.historyFilePath, 'utf8');
-      return JSON.parse(data);
+      return data.length ? JSON.parse(data) : [];
     } catch (err) {
       console.error('Error reading history file', err);
       return [];

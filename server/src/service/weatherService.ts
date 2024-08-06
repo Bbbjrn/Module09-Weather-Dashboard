@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'; 
-dotenv.config();
+dotenv.config(); 
 
 // TODO: Define an interface for the Coordinates object
 

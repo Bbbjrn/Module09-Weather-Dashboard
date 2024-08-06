@@ -1,11 +1,13 @@
 import express from 'express';
-import dotenv from 'dotenv';
 import path from 'path';
+import dotenv from 'dotenv';
 import weatherRoutes from './routes/api/weatherRoutes.js';
 import htmlRoutes from './routes/htmlRoutes.js';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
-
 
 import routes from './routes/index.js';
 
@@ -13,8 +15,8 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // TODO: Serve static files of entire client dist folder
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // TODO: Implement middleware for parsing JSON and urlencoded form data
 app.use(express.static(path.join(__dirname, '../client')));

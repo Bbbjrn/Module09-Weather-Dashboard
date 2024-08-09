@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // TODO: Implement middleware for parsing JSON and urlencoded form data
-app.use(express.static(path.join(__dirname, '../client')));
+app.use(express.static(path.join(__dirname, '../client/dist')));
 // TODO: Implement middleware to connect the routes
 app.use('/api/weather', weatherRoutes);
 app.use('/', htmlRoutes);

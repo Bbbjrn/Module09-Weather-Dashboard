@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 
-
+// Define a City class with name and id properties
 class City {
   name: string;
   id: string;
@@ -12,11 +12,11 @@ class City {
   }
 }
 
-
+// Complete the HistoryService class
 class HistoryService {
   private filePath: string = 'db/searchHistory.json';
 
-
+  // Read method that reads from the searchHistory.json file
   private async read(): Promise<City[]> {
     try {
       const data = await fs.readFile(this.filePath, { encoding: 'utf8', flag: 'a+' });
@@ -28,7 +28,7 @@ class HistoryService {
     }
   }
 
-
+  // Write method that writes the updated cities array to the searchHistory.json file
   private async write(cities: City[]): Promise<void> {
     try {
       await fs.writeFile(this.filePath, JSON.stringify(cities, null, 2), 'utf8');
@@ -37,11 +37,12 @@ class HistoryService {
     }
   }
 
+  // GetCities method that reads the cities from the searchHistory.json file and returns them as an array of City objects
   async getCities(): Promise<City[]> {
     return await this.read();
   }
 
-
+  // AddCity method that adds a city to the searchHistory.json file
   async addCity(cityName: string): Promise<City> {
     if (!cityName) {
       throw new Error('City name cannot be blank');
@@ -62,6 +63,7 @@ class HistoryService {
     return newCity;
   }
 
+  // * BONUS: RemoveCity method that removes a city from the searchHistory.json file
   async removeCity(id: string): Promise<void> {
     const cities = await this.read();
     const filteredCities = cities.filter(city => city.id !== id);

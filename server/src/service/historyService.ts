@@ -29,7 +29,7 @@ class HistoryService {
   }
 
   // Write method that writes the updated cities array to the searchHistory.json file
-  private async write(cities: City[]): Promise<void> {
+  private async write(cities: City[]) {
     try {
       await fs.writeFile(this.filePath, JSON.stringify(cities, null, 2), 'utf8');
     } catch (err) {
@@ -65,10 +65,12 @@ class HistoryService {
 
   // * BONUS: RemoveCity method that removes a city from the searchHistory.json file
   async removeCity(id: string) {
+    const cities = await this.read();
     const filteredCities = cities.filter(city => city.id !== id);
     await this.write(filteredCities);
   }
 }
 
 export default new HistoryService();
+
 

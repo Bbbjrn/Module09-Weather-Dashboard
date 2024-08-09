@@ -1,25 +1,32 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Define interfaces for data structures
+// Define the interfaces for the response data
+interface Weather {
+  cityName: string;
+  temperature: number;
+  feelsLike: number;
+  tempMin: number;
+  tempMax: number;
+  pressure: number;
+  humidity: number;
+  weatherMain: string;
+  weatherDescription: string;
+  weatherIcon: string;
+  windSpeed: number;
+  windDeg: number;
+  visibility: number;
+  date: string;
+}
+
 interface Coordinates {
   lat: number;
   lon: number;
 }
 
-interface WeatherData {
-  cityName: string;
-  date: string;
-  icon: string;
-  description: string;
-  temperature: number;
-  humidity: number;
-  windSpeed: number;
-}
-
 class WeatherService {
-  private baseURL?: string;
-  private apiKey?: string;
+  private baseURL: string;
+  private apiKey: string;
 
   constructor() {
     this.baseURL = process.env.API_BASE_URL || 'https://api.openweathermap.org';
@@ -32,7 +39,6 @@ class WeatherService {
       const response = await fetch(
         `${this.baseURL}/geo/1.0/direct?q=${city}&limit=1&appid=${this.apiKey}`
       );
-
       const locationData = await response.json();
 
       if (!locationData || locationData.length === 0) {
@@ -57,7 +63,6 @@ class WeatherService {
       const response = await fetch(
         `${this.baseURL}/data/2.5/forecast?lat=${coordinates.lat}&lon=${coordinates.lon}&appid=${this.apiKey}&units=metric`
       );
-
       const weatherData = await response.json();
 
       if (!weatherData || !weatherData.list) {
@@ -79,13 +84,20 @@ class WeatherService {
       const mappedWeatherData = weatherData.list.map((entry: any) => {
         return {
           cityName,
-          date: entry.dt_txt,
-          icon: entry.weather[0].icon,
-          description: entry.weather[0].description,
           temperature: entry.main.temp,
+          feelsLike: entry.main.feels_like,
+          tempMin: entry.main.temp_min,
+          tempMax: entry.main.temp_max,
+          pressure: entry.main.pressure,
           humidity: entry.main.humidity,
+          weatherMain: entry.weather[0].main,
+          weatherDescription: entry.weather[0].description,
+          weatherIcon: entry.weather[0].icon,
           windSpeed: entry.wind.speed,
-        } as WeatherData;
+          windDeg: entry.wind.deg,
+          visibility: entry.visibility,
+          date: entry.dt_txt,
+        } as Weather;
       });
 
       return mappedWeatherData;
@@ -107,39 +119,7 @@ class WeatherService {
       throw err;
     }
   }
-
-  // Retrieves the current weather
-  async getCurrentWeather(city: string) {
-    try {
-      const weatherData = await this.getWeatherForCity(city);
-      
-      if (!weatherData || weatherData.length === 0) {
-        throw new Error('No weather data available for the specified city');
-      }
-
-      return weatherData[0];
-    } catch (err) {
-      console.error('Error getting current weather:', err);
-      throw err;
-    }
-  }
-
-  // Retrieves the forecast for the next few days
-  async getWeatherForecast(city: string) {
-    try {
-      const weatherData = await this.getWeatherForCity(city);
-      
-      if (!weatherData || weatherData.length === 0) {
-        throw new Error('No forecast data available for the specified city');
-      }
-
-      return weatherData.slice(1);
-    } catch (err) {
-      console.error('Error getting weather forecast:', err);
-      throw err;
-    }
-  }
 }
 
-export default new WeatherService();
+export default new WeatherService()
 

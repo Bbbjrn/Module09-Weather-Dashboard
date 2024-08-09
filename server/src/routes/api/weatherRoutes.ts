@@ -16,10 +16,10 @@ router.post('/', async (req: Request, res: Response) => {
     const weatherData = await WeatherService.getWeatherForCity(cityName);
     await HistoryService.addCity(cityName);
 
-    return res.json(weatherData); // Ensure a return statement here
+    return res.json(weatherData); 
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Error retrieving weather data', error: (err as Error).message }); // Ensure a return statement here
+    return res.status(500).json({ message: 'Error retrieving weather data', error: (err as Error).message }); 
   }
 });
 
@@ -45,10 +45,10 @@ router.delete('/history/:id', async (req: Request, res: Response) => {
 
     await HistoryService.removeCity(cityId);
 
-    return res.status(204).send(); // Ensure a return statement here
+    return res.status(204).send(); 
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Error deleting city from search history', error: (err as Error).message }); // Ensure a return statement here
+    return res.status(500).json({ message: 'Error deleting city from search history', error: (err as Error).message }); 
   }
 });
 

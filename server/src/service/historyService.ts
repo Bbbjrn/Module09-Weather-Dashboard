@@ -17,7 +17,7 @@ class HistoryService {
   private filePath: string = 'db/searchHistory.json';
 
   // Read method that reads from the searchHistory.json file
-  private async read(): Promise<City[]> {
+  private async read() {
     try {
       const data = await fs.readFile(this.filePath, { encoding: 'utf8', flag: 'a+' });
       const cities = JSON.parse(data || '[]');
@@ -38,12 +38,12 @@ class HistoryService {
   }
 
   // GetCities method that reads the cities from the searchHistory.json file and returns them as an array of City objects
-  async getCities(): Promise<City[]> {
+  async getCities() {
     return await this.read();
   }
 
   // AddCity method that adds a city to the searchHistory.json file
-  async addCity(cityName: string): Promise<City> {
+  async addCity(cityName: string) {
     if (!cityName) {
       throw new Error('City name cannot be blank');
     }
@@ -64,8 +64,7 @@ class HistoryService {
   }
 
   // * BONUS: RemoveCity method that removes a city from the searchHistory.json file
-  async removeCity(id: string): Promise<void> {
-    const cities = await this.read();
+  async removeCity(id: string) {
     const filteredCities = cities.filter(city => city.id !== id);
     await this.write(filteredCities);
   }

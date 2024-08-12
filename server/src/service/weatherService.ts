@@ -78,17 +78,23 @@ class WeatherService {
 
   async getCoordinatesByCityName(city: string): Promise<Coordinates> {
     try {
-      const response = await fetch(
-        `${this.baseURL}geo/1.0/direct?q=${city}&limit=1&appid=${this.apiKey}`
-      );
-      const locationData = await response.json();
-      return { lat: locationData[0].lat, lon: locationData[0].lon };
+        const response = await fetch(
+            `${this.baseURL}geo/1.0/direct?q=${city}&limit=1&appid=${this.apiKey}`
+        );
+        const locationData = await response.json();
+
+        if (!locationData || locationData.length === 0) {
+            throw new Error('City not found or API response is empty.');
+        }
+
+        return { lat: locationData[0].lat, lon: locationData[0].lon };
     } catch (err) {
-      console.error('Error fetching coordinates:', err);
-      throw err;
+        console.error('Error fetching coordinates:', err);
+        throw err;
     }
   }
-}
+}  
+
 
 export default new WeatherService();
 

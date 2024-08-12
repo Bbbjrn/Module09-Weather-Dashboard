@@ -14,7 +14,7 @@ class City {
 
 // Complete the HistoryService class
 class HistoryService {
-  private filePath: string = 'db/searchHistory.json';
+  private filePath: string = '../db/searchHistory.json';
 
   // Read method that reads from the searchHistory.json file
   private async read() {

@@ -1,25 +1,27 @@
 import { Router, type Request, type Response } from 'express';
-const router = Router();
+import HistoryService from '../../service/historyService';
+import WeatherService from '../../service/weatherService';
 
-import HistoryService from '../../service/historyService.js';
-import WeatherService from '../../service/weatherService.js';
+const router = Router();
 
 // POST Request with city name to retrieve weather data
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const cityName = req.body.city;
-    
-    if (!cityName) {
-      return res.status(400).json({ message: 'City name is required' });
-    }
+      const cityName = req.body.city;
+      if (!cityName) {
+          return res.status(400).json({ message: 'City name is required' });
+      }
 
-    const weatherData = await WeatherService.getWeatherForCity(cityName);
-    await HistoryService.addCity(cityName);
+      // Get weather data for the city
+      const weatherData = await WeatherService.getWeatherForCity(cityName);
 
-    return res.json(weatherData); 
+      // Save city to search history
+      await HistoryService.addCity(cityName);
+
+      return res.json(weatherData); // Ensure response is sent
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Error retrieving weather data', error: (err as Error).message }); 
+      console.error(err);
+      return res.status(500).json({ message: 'Error retrieving weather data', error: (err as Error).message });
   }
 });
 
@@ -44,13 +46,13 @@ router.delete('/history/:id', async (req: Request, res: Response) => {
     }
 
     await HistoryService.removeCity(cityId);
-
-    return res.status(204).send(); 
+    return res.status(204).send(); // No content response
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Error deleting city from search history', error: (err as Error).message }); 
+    return res.status(500).json({ message: 'Error deleting city from search history', error: (err as Error).message });
   }
 });
 
 export default router;
+
 

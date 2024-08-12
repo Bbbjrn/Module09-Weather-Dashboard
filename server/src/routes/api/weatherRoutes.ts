@@ -1,32 +1,31 @@
-import { Router, type Request, type Response } from 'express';
+import { Router, Request, Response } from 'express';
+const router = Router();
+
 import HistoryService from '../../service/historyService.js';
 import WeatherService from '../../service/weatherService.js';
-
-const router = Router();
 
 // POST Request with city name to retrieve weather data
 router.post('/', async (req: Request, res: Response) => {
   try {
-      const cityName = req.body.city;
-      if (!cityName) {
-          return res.status(400).json({ message: 'City name is required' });
-      }
+    const cityName = req.body.cityName;
 
-      // Get weather data for the city
-      const weatherData = await WeatherService.getWeatherForCity(cityName);
+    if (!cityName) {
+      return res.status(400).json({ message: 'City name is required' });
+    }
 
-      // Save city to search history
-      await HistoryService.addCity(cityName);
+    const weatherData = await WeatherService.getWeatherForCity(cityName);
 
-      return res.json(weatherData); // Ensure response is sent
+    await HistoryService.addCity(cityName);
+
+    return res.json(weatherData);
   } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Error retrieving weather data', error: (err as Error).message });
+    console.error(err);
+    return res.status(500).json({ message: 'Error retrieving weather data', error: (err as Error).message });
   }
 });
 
 // GET search history
-router.get('/history', async (_req: Request, res: Response) => {
+router.get('/history', async (req: Request, res: Response) => {
   try {
     const cities = await HistoryService.getCities();
     res.json(cities);
@@ -46,6 +45,7 @@ router.delete('/history/:id', async (req: Request, res: Response) => {
     }
 
     await HistoryService.removeCity(cityId);
+
     return res.status(204).send(); // No content response
   } catch (err) {
     console.error(err);
@@ -54,5 +54,6 @@ router.delete('/history/:id', async (req: Request, res: Response) => {
 });
 
 export default router;
+
 
 

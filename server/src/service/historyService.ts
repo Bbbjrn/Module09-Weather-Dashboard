@@ -14,7 +14,7 @@ class City {
 class HistoryService {
   private async read(): Promise<string> {
     try {
-      const data = await fs.readFile('server/db/searchHistory.json', {
+      const data = await fs.readFile('db/searchHistory.json', {
         encoding: 'utf8',
         flag: 'a+',
       });
@@ -27,7 +27,7 @@ class HistoryService {
 
   private async write(cities: City[]): Promise<void> {
     try {
-      await fs.writeFile('server/db/searchHistory.json', JSON.stringify(cities, null, '\t'));
+      await fs.writeFile('db/searchHistory.json', JSON.stringify(cities, null, '\t'));
     } catch (err) {
       console.error('Error writing to history file:', err);
       throw err;

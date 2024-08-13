@@ -2,100 +2,67 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-interface Coordinates {
-  lat: number;
-  lon: number;
-}
-
-interface Weather {
-  temperature: number;
-  humidity: number;
-  windSpeed: number;
-  weatherDescription: string;
-  icon: string;
-}
-
-interface Forecast {
-  date: string;
-  temperature: number;
-  windSpeed: number;
-  icon: string;
-}
-
 class WeatherService {
-  private baseURL?: string;
-  private apiKey?: string;
+  private geoBaseURL: string;
+  private forecastBaseURL: string;
+  private apiKey: string;
 
   constructor() {
-    this.baseURL = 'https://api.openweathermap.org/data/2.5/';
-    this.apiKey = process.env.OPENWEATHER_API_KEY || '';
+    this.geoBaseURL = 'https://api.openweathermap.org/geo/1.0/direct';
+    this.forecastBaseURL = 'https://api.openweathermap.org/data/2.5/forecast';
+    this.apiKey = process.env.API_KEY || '';
   }
 
-  async getWeatherByCoordinates(coordinates: Coordinates): Promise<Weather> {
+  // Method to get latitude and longitude from the city name using Geocoding API
+  async getCoordinatesByCityName(city: string, state?: string, country?: string) {
+    try {
+      let query = `${city}`;
+      if (state) query += `,${state}`;
+      if (country) query += `,${country}`;
+
+      const response = await fetch(
+        `${this.geoBaseURL}?q=${encodeURIComponent(query)}&limit=1&appid=${this.apiKey}`
+      );
+      const locationData = await response.json();
+
+      if (!locationData || locationData.length === 0) {
+        throw new Error(`City not found or API response error`);
+      }
+
+      return { lat: locationData[0].lat, lon: locationData[0].lon };
+    } catch (err) {
+      console.error('Error fetching coordinates:', (err as Error).message || err);
+      throw err;
+    }
+  }
+
+  // Method to get weather data from the 5-day/3-hour forecast API
+  async getWeatherByCoordinates(lat: number, lon: number, units: string = 'metric', lang: string = 'en') {
     try {
       const response = await fetch(
-        `${this.baseURL}weather?lat=${coordinates.lat}&lon=${coordinates.lon}&appid=${this.apiKey}&units=metric`
+        `${this.forecastBaseURL}?lat=${lat}&lon=${lon}&units=${units}&lang=${lang}&appid=${this.apiKey}`
       );
       const weatherData = await response.json();
-      return this.mapWeatherData(weatherData);
+
+      if (weatherData.cod !== '200') {
+        throw new Error(`Weather data not found or API response error: ${weatherData.message}`);
+      }
+
+      return weatherData;
     } catch (err) {
-      console.error('Error fetching weather data:', err);
+      console.error('Error fetching weather data:', (err as Error).message || err);
       throw err;
     }
   }
 
-  async getForecastByCoordinates(coordinates: Coordinates): Promise<Forecast[]> {
-    try {
-      const response = await fetch(
-        `${this.baseURL}forecast?lat=${coordinates.lat}&lon=${coordinates.lon}&appid=${this.apiKey}&units=metric`
-      );
-      const forecastData = await response.json();
-      return this.mapForecastData(forecastData.list);
-    } catch (err) {
-      console.error('Error fetching forecast data:', err);
-      throw err;
-    }
+  // Method to combine the above functionalities
+  async getWeatherForCity(city: string, state?: string, country?: string, units: string = 'metric', lang: string = 'en') {
+    const { lat, lon } = await this.getCoordinatesByCityName(city, state, country);
+    return this.getWeatherByCoordinates(lat, lon, units, lang);
   }
-
-  private mapWeatherData(data: any): Weather {
-    return {
-      temperature: data.main.temp,
-      humidity: data.main.humidity,
-      windSpeed: data.wind.speed,
-      weatherDescription: data.weather[0].description,
-      icon: data.weather[0].icon,
-    };
-  }
-
-  private mapForecastData(data: any[]): Forecast[] {
-    return data.map((entry) => ({
-      date: entry.dt_txt,
-      temperature: entry.main.temp,
-      windSpeed: entry.wind.speed,
-      icon: entry.weather[0].icon,
-    }));
-  }
-
-  async getCoordinatesByCityName(city: string): Promise<Coordinates> {
-    try {
-        const response = await fetch(
-            `${this.baseURL}geo/1.0/direct?q=${city}&limit=1&appid=${this.apiKey}`
-        );
-        const locationData = await response.json();
-
-        if (!locationData || locationData.length === 0) {
-            throw new Error('City not found or API response is empty.');
-        }
-
-        return { lat: locationData[0].lat, lon: locationData[0].lon };
-    } catch (err) {
-        console.error('Error fetching coordinates:', err);
-        throw err;
-    }
-  }
-}  
-
+}
 
 export default new WeatherService();
+
 
 

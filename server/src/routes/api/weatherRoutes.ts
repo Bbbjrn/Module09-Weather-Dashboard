@@ -1,46 +1,55 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 import WeatherService from '../../service/weatherService.js';
 import HistoryService from '../../service/historyService.js';
 
 const router = Router();
 
-router.post('/', async (req: Request, res: Response) => {
+// POST route to fetch weather data by city name
+router.post('/', async (req, res) => {
   try {
-    const { city } = req.body;
+    const { city, state, country, units, lang } = req.body;
     if (!city) {
       return res.status(400).json({ error: 'City name is required' });
     }
-    
-    const coordinates = await WeatherService.getCoordinatesByCityName(city);
-    const weatherData = await WeatherService.getWeatherByCoordinates(coordinates);
-    const forecastData = await WeatherService.getForecastByCoordinates(coordinates);
-    await HistoryService.addCity(city);
 
-    return res.json({ weather: weatherData, forecast: forecastData });
-  } catch (error) {
-    return res.status(500).json({ error: 'Failed to retrieve weather data' });
+    // Fetch weather data directly using the city name
+    const weatherData = await WeatherService.getWeatherForCity(city, state, country, units, lang);
+
+    // Save the city to search history
+    const sanitizedCityName = city.charAt(0).toUpperCase() + city.slice(1).toLowerCase();
+    await HistoryService.addCity(sanitizedCityName);
+
+    return res.json(weatherData);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json(err);
   }
 });
 
-router.get('/history', async (_req: Request, res: Response) => {
+// GET route to retrieve search history
+router.get('/history', async (_req, res) => {
   try {
     const cities = await HistoryService.getCities();
     res.json(cities);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to retrieve search history' });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
   }
 });
 
-router.delete('/history/:id', async (req: Request, res: Response) => {
+// DELETE route to remove a city from search history by ID
+router.delete('/history/:id', async (req, res) => {
   try {
     const { id } = req.params;
     await HistoryService.removeCity(id);
     res.status(204).end();
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete city from history' });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
   }
 });
 
 export default router;
+
 
 

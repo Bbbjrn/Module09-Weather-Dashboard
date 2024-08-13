@@ -6,105 +6,67 @@ interface Coordinates {
   lon: number;
 }
 
-class Weather {
-  constructor(
-    public date: string,
-    public temp: number,
-    public windSpeed: number,
-    public humidity: number,
-    public icon: string,
-    public iconDescription: string
-  ) {}
+interface Weather {
+  city: string;
+  date: string;
+  tempF: number;
+  windSpeed: number;
+  humidity: number;
+  icon: string;
+  iconDescription: string;
 }
 
 class WeatherService {
   private baseURL: string;
   private apiKey: string;
-  private cityName?: string;
 
   constructor() {
-    this.baseURL = 'https://api.openweathermap.org/data/2.5';
+    this.baseURL = process.env.API_BASE_URL || 'https://api.openweathermap.org';
     this.apiKey = process.env.API_KEY || '';
   }
 
-  private async fetchLocationData(query: string): Promise<any> {
-    const response = await fetch(query);
-    return await response.json();
-  }
+  private async fetchLocationData(cityName: string): Promise<Coordinates> {
+    const geocodeURL = `${this.baseURL}/geo/1.0/direct?q=${cityName}&limit=1&appid=${this.apiKey}`;
+    const response = await fetch(geocodeURL);
+    const locations = await response.json();
 
-  private destructureLocationData(locationData: any): Coordinates {
-    const { lat, lon } = locationData[0];
+    if (!locations.length) {
+      throw new Error('Location not found');
+    }
+
+    const { lat, lon } = locations[0];
     return { lat, lon };
   }
 
-  private buildGeocodeQuery(): string {
-    return `http://api.openweathermap.org/geo/1.0/direct?q=${this.cityName}&limit=1&appid=${this.apiKey}`;
-  }
-
-  private buildWeatherQuery(coordinates: Coordinates): string {
-    return `${this.baseURL}/forecast?lat=${coordinates.lat}&lon=${coordinates.lon}&units=imperial&appid=${this.apiKey}`;
-  }
-
-  private async fetchAndDestructureLocationData(): Promise<Coordinates> {
-    const geocodeQuery = this.buildGeocodeQuery();
-    const locationData = await this.fetchLocationData(geocodeQuery);
-    return this.destructureLocationData(locationData);
-  }
-
   private async fetchWeatherData(coordinates: Coordinates): Promise<any> {
-    const weatherQuery = this.buildWeatherQuery(coordinates);
-    const response = await fetch(weatherQuery);
+    const weatherURL = `${this.baseURL}/data/2.5/forecast?lat=${coordinates.lat}&lon=${coordinates.lon}&appid=${this.apiKey}&units=imperial`;
+    const response = await fetch(weatherURL);
     return await response.json();
   }
 
-  private parseCurrentWeather(response: any): Weather {
-    const current = response.list[0];
-    return new Weather(
-      current.dt_txt,
-      current.main.temp,
-      current.wind.speed,
-      current.main.humidity,
-      current.weather[0].icon,
-      current.weather[0].description
-    );
-  }
+  public async getWeatherForCity(cityName: string): Promise<Weather[]> {
+    try {
+      const coordinates = await this.fetchLocationData(cityName);
+      const weatherData = await this.fetchWeatherData(coordinates);
 
-  private buildForecastArray(weatherData: any[]): Weather[] {
-    return weatherData.map((item: any) => {
-      return new Weather(
-        item.dt_txt,
-        item.main.temp,
-        item.wind.speed,
-        item.main.humidity,
-        item.weather[0].icon,
-        item.weather[0].description
-      );
-    });
-  }
-
-  async getWeatherForCity(city: string): Promise<{ current: Weather; forecast: Weather[] }> {
-    this.cityName = city;
-
-    // Get coordinates for the city
-    const coordinates = await this.fetchAndDestructureLocationData();
-
-    // Fetch weather data using the coordinates
-    const weatherData = await this.fetchWeatherData(coordinates);
-
-    // Parse the current weather
-    const currentWeather = this.parseCurrentWeather(weatherData);
-
-    // Build the forecast array
-    const forecastArray = this.buildForecastArray(weatherData.list);
-
-    return {
-      current: currentWeather,
-      forecast: forecastArray,
-    };
+      return weatherData.list.map((entry: any) => ({
+        city: weatherData.city.name,
+        date: entry.dt_txt,
+        tempF: entry.main.temp,
+        windSpeed: entry.wind.speed,
+        humidity: entry.main.humidity,
+        icon: entry.weather[0].icon,
+        iconDescription: entry.weather[0].description,
+      }));
+    } catch (err) {
+      console.error('Error fetching weather data:', err);
+      throw err;
+    }
   }
 }
 
 export default new WeatherService();
+
 
 
 

@@ -17,7 +17,7 @@ The Weather Dashboard is a web application that allows users to search for curre
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/your-username/weather-dashboard.git
+    git clone https://github.com/Bbbjrn/weather-dashboard.git
     cd weather-dashboard
     ```
 
